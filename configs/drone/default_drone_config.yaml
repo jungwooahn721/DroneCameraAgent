@@ -1,0 +1,15 @@
+name: drone
+initial_position: [0.0, 0.0, 0.0]
+initial_orientation: [0.0, 0.0, 0.0]
+init_from_scene: true
+
+camera:
+  name: DroneCamera
+  resolution: [1024, 768]
+  focal_length: 50.0
+  sensor_width: 36.0
+  sensor_height: 24.0
+  clip_start: 0.1
+  clip_end: 1000.0
+  image_format: PNG
+  render_engine: CYCLES

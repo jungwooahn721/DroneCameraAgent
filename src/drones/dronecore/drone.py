@@ -1,14 +1,15 @@
 import os
 from evaluators.evaluator import * 
 from detectors.detector import GroundingDINODetector
+from drones.dronecore.camera import build_camera
 
 
 class Drone:
-    def __init__(self, id, initial_position=(0,0,0), initial_orientation=(0,0,0)):
-        self.id = id
+    def __init__(self, name, initial_position=(0,0,0), initial_orientation=(0,0,0)):
+        self.name = name
         self.initial_position = initial_position
         self.position = initial_position
-        self.orientation = initial_orientation  # Euler angles? # (yaw, pitch, roll)
+        self.orientation = initial_orientation  # Euler angles? # (roll, pitch, yaw)
         
     def move(self, delta_position, delta_orientation):
         self.position = tuple(p + dp for p, dp in zip(self.position, delta_position))
@@ -20,7 +21,7 @@ class Drone:
     
     def get_state(self):
         return {
-            "id": self.id,
+            "name": self.name,
             "position": self.position,
             "orientation": self.orientation
         }
@@ -29,7 +30,7 @@ class Drone:
 class DroneVisionAgent(Drone):
     def __init__(
         self, 
-        id, 
+        name, 
         camera_info, 
         initial_position=(0,0,0), 
         initial_orientation=(0,0,0),
@@ -37,9 +38,10 @@ class DroneVisionAgent(Drone):
         detector_config_path='repos/GroundingDINO/groundingdino/config/GroundingDINO_SwinT_OGC.py',
         detector_weights_path='repos/GroundingDINO/weights/groundingdino_swint_ogc.pth',
         target_prompt=None,
-        target_image=None
+        target_image=None,
+        target_image_embedding=None,
     ):
-        super().__init__(id, initial_position, initial_orientation)
+        super().__init__(name, initial_position, initial_orientation)
         
         # Camera
         self.camera_info = camera_info
@@ -52,6 +54,10 @@ class DroneVisionAgent(Drone):
         # Target
         self.target_prompt = target_prompt
         self.target_image = target_image
+        if target_image_embedding is not None:
+            self.target_image_embedding = target_image_embedding
+        else:
+            self.target_image_embedding = None  # To be computed when needed # or do: self.compute_image_embedding(target_image)
         
         # Callbacks
         self.get_pose_callback = None
@@ -78,17 +84,17 @@ class DroneVisionAgent(Drone):
         self.render_callback = render_func
         
     
-    # Interact with Environment
+    # Interact with Env
     def update_pose_from_env(self):
         if self.get_pose_callback is not None:
-            pose = self.get_pose_callback(self.id)
+            pose = self.get_pose_callback(self.name)
             if pose is not None:
                 self.position = pose.get("position", self.position)
                 self.orientation = pose.get("orientation", self.orientation)
     
     def apply_pose_to_env(self):
         if self.set_pose_callback is not None:
-            self.set_pose_callback(self.id, {
+            self.set_pose_callback(self.name, {
                 "position": self.position,
                 "orientation": self.orientation
             })
@@ -121,7 +127,6 @@ class DroneVisionAgent(Drone):
             box_threshold=box_threshold,
             text_threshold=text_threshold,
         )
-        
         
     # Evaluate
     def evaluate_image(self, image, detections, metrics=None):
@@ -173,7 +178,6 @@ class DroneVisionAgent(Drone):
             self.evaluator = evaluator
 
         return evaluator.evaluate(image_bgr, detections)
-
 
     # Action
     def get_action(self):

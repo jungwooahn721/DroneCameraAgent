@@ -9,6 +9,8 @@ from pathlib import Path
 import bpy
 from mathutils import Euler, Matrix, Vector
 
+from scenes.scene import open_scene, set_nishita_sky
+
 
 def parse_args(argv):
     parser = argparse.ArgumentParser(description="Render random views of an object in a Blender scene.")
@@ -47,20 +49,7 @@ def ensure_camera(scene):
 
 
 def set_sky(strength):
-    scene = bpy.context.scene
-    world = scene.world or bpy.data.worlds.new("World")
-    scene.world = world
-    world.use_nodes = True
-    nodes = world.node_tree.nodes
-    links = world.node_tree.links
-    nodes.clear()
-    bg = nodes.new(type="ShaderNodeBackground")
-    sky = nodes.new(type="ShaderNodeTexSky")
-    sky.sky_type = "NISHITA"
-    bg.inputs["Strength"].default_value = strength
-    output = nodes.new(type="ShaderNodeOutputWorld")
-    links.new(sky.outputs["Color"], bg.inputs["Color"])
-    links.new(bg.outputs["Background"], output.inputs["Surface"])
+    set_nishita_sky(float(strength))
 
 
 def set_render_settings(scene, resolution):
@@ -179,8 +168,7 @@ def main(argv):
     images_dir = run_dir / "images"
     images_dir.mkdir(parents=True, exist_ok=True)
 
-    bpy.ops.wm.open_mainfile(filepath=str(blend_path))
-    scene = bpy.context.scene
+    scene = open_scene(str(blend_path))
     camera = ensure_camera(scene)
     if args.focal_length is not None:
         camera.data.lens = args.focal_length

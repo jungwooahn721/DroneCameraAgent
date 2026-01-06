@@ -8,5 +8,6 @@ torchvision
 pyiqa
 transformers
 open_clip_torch
+pyyaml
 bpy
 mathutils
