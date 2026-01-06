@@ -204,15 +204,14 @@ if __name__ == "__main__":
     main()
     
     
-    """
-cd /home/minhopark/repos/repos4students/jungwooahn/DroneCameraAgent
+"""
 
 CUDA_VISIBLE_DEVICES=6 python detector.py \
-  --image outputs/Koky_LuxuryHouse_0_deterministic_radius_4_pos_fixed_251231_102750/images/img_0003.png \
+  --image outputs/Koky_LuxuryHouse_0_deterministic_radius_8_pos_fixed_251231_102813/images/img_0181.png \
   --config repos/GroundingDINO/groundingdino/config/GroundingDINO_SwinT_OGC.py \
   --weights repos/GroundingDINO/weights/groundingdino_swint_ogc.pth \
-  --caption "a man" \
+  --caption "a man with black clothes" \
   --viz_out outputs/dino_viz.png \
   --json_out outputs/dino.json
     
-    """
+"""
