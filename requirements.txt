@@ -1,0 +1,12 @@
+numpy
+matplotlib
+tqdm
+opencv-python
+torch
+Pillow
+torchvision
+pyiqa
+transformers
+open_clip_torch
+bpy
+mathutils
