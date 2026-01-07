@@ -19,6 +19,9 @@ class Drone:
         self.position = position
         self.orientation = orientation
     
+    def get_pose(self):
+        return self.position, self.orientation
+    
     def get_state(self):
         return {
             "name": self.name,
@@ -45,7 +48,6 @@ class DroneVisionAgent(Drone):
         
         # Camera
         self.camera_info = camera_info
-        self.camera = build_camera(camera_info)
         
         # Detector & Evaluator
         self.detector = GroundingDINODetector(detector_config_path, detector_weights_path, device=device)
@@ -54,16 +56,7 @@ class DroneVisionAgent(Drone):
         # Target
         self.target_prompt = target_prompt
         self.target_image = target_image
-        if target_image_embedding is not None:
-            self.target_image_embedding = target_image_embedding
-        else:
-            self.target_image_embedding = None  # To be computed when needed # or do: self.compute_image_embedding(target_image)
-        
-        # Callbacks
-        self.get_pose_callback = None
-        self.set_pose_callback = None
-        self.set_camera_callback = None
-        self.render_callback = None
+        self.target_image_embedding = target_image_embedding
         
         # Memory
         self.captured_images = []  # List of (image, pose, detections, evaluation) tuples
@@ -71,33 +64,21 @@ class DroneVisionAgent(Drone):
         self.best_score = float('-inf')
         self.history = []  # List of past poses and actions
         
+        # Callbacks
+        self.move_ = None
+        self.get_pose_ = None
+        self.render_ = None
         
-    # Callbacks
-    def set_pose_callbacks(self, get_pose_func, set_pose_func):
-        self.get_pose_callback = get_pose_func
-        self.set_pose_callback = set_pose_func
         
-    def set_camera_callbacks(self, set_camera_func):
-        self.set_camera_callback = set_camera_func
+    # Call back (to interact with blender or real world)
+    def callback_move_function(self, move_func):
+        self.move_ = move_func      
+        
+    def callback_pose_function(self, get_pose_func):
+        self.get_pose_ = get_pose_func
 
-    def set_render_callbacks(self, render_func):
-        self.render_callback = render_func
-        
-    
-    # Interact with Env
-    def update_pose_from_env(self):
-        if self.get_pose_callback is not None:
-            pose = self.get_pose_callback(self.name)
-            if pose is not None:
-                self.position = pose.get("position", self.position)
-                self.orientation = pose.get("orientation", self.orientation)
-    
-    def apply_pose_to_env(self):
-        if self.set_pose_callback is not None:
-            self.set_pose_callback(self.name, {
-                "position": self.position,
-                "orientation": self.orientation
-            })
+    def callback_render_function(self, render_func):
+        self.render_ = render_func
             
 
     # Target
@@ -106,9 +87,18 @@ class DroneVisionAgent(Drone):
             self.target_prompt = target_prompt
         if target_image is not None:
             self.target_image = target_image
+            self.target_image_embedding = None #TODO
+    
+    def clear_target_prompt(self):
+        self.target_prompt = None
         
+    def clear_target_image(self):
+        self.target_image = None
+        self.target_image_embedding = None
+        
+
     # Detect
-    def detect_target(self, image, target_prompt=None, box_threshold=0.35, text_threshold=0.25):
+    def detect_target(self, image, target_prompt=None, target_image=None, box_threshold=0.35, text_threshold=0.25):
     # TODO: detect with reference frame?
         if target_prompt is None:
             target_prompt = self.target_prompt
@@ -155,8 +145,7 @@ class DroneVisionAgent(Drone):
             metric_builders = {
                 "color_contrast": ColorContrastEvaluator,
                 "subject_size": SubjectSizeEvaluator,
-                "rule_of_thirds": RuleOfThridsEvaluator,
-                "rule_of_thrids": RuleOfThridsEvaluator,
+                "rule_of_thirds": RuleOfThirdsEvaluator,
                 "breathing_space": BreathingSpaceEvaluator,
                 "brightness": BrightnessEvaluator,
                 "laplacian": LaplacianEvaluator,

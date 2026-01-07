@@ -53,7 +53,7 @@ from src.evaluators.evaluator import (
 	EvaluationResult,
 	LaplacianEvaluator,
 	QAlignEvaluator,
-	RuleOfThridsEvaluator,
+	RuleOfThirdsEvaluator,
 	StddevEvaluator,
 	SubjectSizeEvaluator,
 	default_composition_evaluator,
@@ -353,7 +353,7 @@ def _build_evaluators_map(metric_names: Sequence[str]) -> Dict[str, Any]:
 	metric_builders = {
 		"color_contrast": ColorContrastEvaluator,
 		"subject_size": SubjectSizeEvaluator,
-		"rule_of_thirds": RuleOfThridsEvaluator,
+		"rule_of_thirds": RuleOfThirdsEvaluator,
 		"breathing_space": BreathingSpaceEvaluator,
 		"brightness": BrightnessEvaluator,
 		"laplacian": LaplacianEvaluator,

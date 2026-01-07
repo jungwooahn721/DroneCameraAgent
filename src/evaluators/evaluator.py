@@ -223,7 +223,7 @@ class SubjectSizeEvaluator(Evaluator):
         )
 
 
-class RuleOfThridsEvaluator(Evaluator):
+class RuleOfThirdsEvaluator(Evaluator):
     """Scores how close the subject center is to rule-of-thirds intersections."""
     # or ... consider only the horizontal distance from vertical thirds lines? #TODO
 
@@ -547,7 +547,7 @@ def default_composition_evaluator() -> CompositeEvaluator:
         evaluators=[
             ColorContrastEvaluator(),
             SubjectSizeEvaluator(),
-            RuleOfThridsEvaluator(),
+            RuleOfThirdsEvaluator(),
             BreathingSpaceEvaluator(),
         ],
         weights=[1.0, 1.0, 1.0, 1.0],

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from drones.dronecore.drone import DroneVisionAgent
 from src.drones.blender_drone.blender_drone import BlenderDrone
 from src.scenes.scene import open_scene, set_nishita_sky
 from utils import load_config
@@ -52,28 +53,26 @@ def main(config_path: str) -> None:
     set_nishita_sky(sky_strength)
 
     # Initialize Drone with Camera and Vision Agent (Blender runtime).
-    drone = BlenderDrone(
-        name=drone_cfg["name"],
+    drone = DroneVisionAgent(
+        name=drone_cfg.get("name", "DavianDrone"),
         camera_info=camera_info,
-        initial_position=tuple(drone_cfg["initial_position"]),
-        initial_orientation=tuple(drone_cfg["initial_orientation"]),
-        device=run_cfg["device"],
-        detector_config_path=str(_abs_path(detector_cfg["config"])),
-        detector_weights_path=str(_abs_path(detector_cfg["weights"])),
-        target_prompt=run_cfg["target_prompt"],
-        scene=scene,
-        camera_name=camera_name,
-        output_dir=str(images_dir),
-        image_format=run_cfg["image_format"],
-        render_engine=run_cfg["render_engine"],
-        init_from_scene=drone_cfg["init_from_scene"],
+        initial_position=tuple(drone_cfg.get("initial_position", (0, 0, 0))),
+        initial_orientation=tuple(drone_cfg.get("initial_orientation", (0, 0, 0))),
+        device=detector_cfg.get("device", "cuda"),
+        detector_config_path=_abs_path(detector_cfg.get("config_path", "")),
+        detector_weights_path=_abs_path(detector_cfg.get("weights_path", "")),
+        target_prompt=drone_cfg.get("target_prompt", None),
+        target_image=None,
     )
-    
+
+
 
     # ----------- Stage 1: Search for Target Using Drone Camera -------------------
     # TODO
     # target_detected = drone.search_for_target( ... )
     # drone.set_target(target_detected)
+
+
 
     # ----------- Stage 2: Evaluate Captured Images for Target Presence ------------
     # TODO

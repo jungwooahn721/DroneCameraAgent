@@ -16,12 +16,12 @@ detector:
   weights: repos/GroundingDINO/weights/groundingdino_swint_ogc.pth
 
 drone:
-  name: DAVIAN_DRONE
+  name: DavianDrone
   initial_position: [0.0, 0.0, 0.0]
   initial_orientation: [0.0, 0.0, 0.0]
   init_from_scene: true
   camera:
-    name: DAVIAN_CAMERA
+    name: DroneCamera
     resolution: [1024, 768]
     focal_length: 50.0
     sensor_width: 36.0
