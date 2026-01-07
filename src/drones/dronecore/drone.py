@@ -182,3 +182,4 @@ class DroneVisionAgent(Drone):
     # Action
     def get_action(self):
         return NotImplementedError("get_action() not implemented yet.")
+    

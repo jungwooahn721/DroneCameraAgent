@@ -9,7 +9,7 @@ from pathlib import Path
 import bpy
 from mathutils import Euler, Matrix, Vector
 
-from scenes.scene import open_scene, set_nishita_sky
+from src.scenes.scene import open_scene, set_nishita_sky
 
 
 def parse_args(argv):

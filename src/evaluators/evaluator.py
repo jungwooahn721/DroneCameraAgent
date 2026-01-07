@@ -448,6 +448,7 @@ class QAlignEvaluator(Evaluator):
     def __init__(self) -> None:
         self._model = None
         self._device = None
+        self._load_error: Optional[str] = None
 
     def _load_model(self) -> Optional[str]:
         try:
@@ -459,16 +460,31 @@ class QAlignEvaluator(Evaluator):
         if self._model is not None:
             return None
 
-        if self._device is None:
-            self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        # If we already tried and failed, don't spam load attempts.
+        if self._load_error is not None:
+            return self._load_error
 
-        print(f"Loading Q-Align model on {self._device}...")
-        try:
-            self._model = pyiqa.create_metric("qalign", device=self._device)
-            return None
-        except Exception as exc:
-            print(f"Failed to create Q-Align metric: {exc}")
-            return str(exc)
+        # Q-Align in pyiqa often pulls in transformers/accelerate/bitsandbytes.
+        # On some systems, a broken CUDA/bitsandbytes setup causes model init to fail.
+        # Prefer CUDA if available, but fall back to CPU automatically.
+        devices_to_try = [torch.device("cuda"), torch.device("cpu")] if torch.cuda.is_available() else [torch.device("cpu")]
+
+        last_err: Optional[str] = None
+        for dev in devices_to_try:
+            self._device = dev
+            print(f"Loading Q-Align model on {self._device}...")
+            try:
+                self._model = pyiqa.create_metric("qalign", device=self._device)
+                self._load_error = None
+                return None
+            except Exception as exc:
+                last_err = str(exc)
+                self._model = None
+                continue
+
+        self._load_error = last_err or "unknown_error"
+        print(f"Failed to create Q-Align metric: {self._load_error}")
+        return self._load_error
 
     def evaluate(self, image_bgr, detections: Optional[Iterable[Any]] = None) -> EvaluationResult:
         try:
