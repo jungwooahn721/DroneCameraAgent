@@ -1,7 +1,25 @@
 import os
-from evaluators.evaluator import * 
+from typing import Any, Optional, Tuple
+
+from evaluators.evaluator import *
 from detectors.detector import GroundingDINODetector
 from drones.dronecore.camera import build_camera
+
+Pose = Tuple[Tuple[float, float, float], Tuple[float, float, float]]
+
+
+class DroneEnvironment:
+    def move(self, delta_position, delta_orientation) -> Pose:
+        raise NotImplementedError()
+
+    def move_to(self, position, orientation) -> Pose:
+        raise NotImplementedError()
+
+    def get_pose(self) -> Pose:
+        raise NotImplementedError()
+
+    def render(self) -> Any:
+        raise NotImplementedError()
 
 
 class Drone:
@@ -18,8 +36,8 @@ class Drone:
     def move_to(self, position, orientation):
         self.position = position
         self.orientation = orientation
-    
-    def get_pose(self):
+
+    def get_pose(self) -> Pose:
         return self.position, self.orientation
     
     def get_state(self):
@@ -43,11 +61,12 @@ class DroneVisionAgent(Drone):
         target_prompt=None,
         target_image=None,
         target_image_embedding=None,
+        env: Optional[DroneEnvironment] = None,
     ):
         super().__init__(name, initial_position, initial_orientation)
         
         # Camera
-        self.camera_info = camera_info
+        self.camera_info = build_camera(camera_info)
         
         # Detector & Evaluator
         self.detector = GroundingDINODetector(detector_config_path, detector_weights_path, device=device)
@@ -64,21 +83,41 @@ class DroneVisionAgent(Drone):
         self.best_score = float('-inf')
         self.history = []  # List of past poses and actions
         
-        # Callbacks
-        self.move_ = None
-        self.get_pose_ = None
-        self.render_ = None
+        # Environment adapter (Blender or real-world)
+        self.env = env
         
         
-    # Call back (to interact with blender or real world)
-    def callback_move_function(self, move_func):
-        self.move_ = move_func      
-        
-    def callback_pose_function(self, get_pose_func):
-        self.get_pose_ = get_pose_func
+    def set_environment(self, env: Optional[DroneEnvironment]) -> None:
+        self.env = env
+    
+    def move(self, delta_position, delta_orientation):
+        if self.env is None:
+            super().move(delta_position, delta_orientation)
+            return
+        position, orientation = self.env.move(delta_position, delta_orientation)
+        self.position = position
+        self.orientation = orientation
 
-    def callback_render_function(self, render_func):
-        self.render_ = render_func
+    def move_to(self, position, orientation):
+        if self.env is None:
+            super().move_to(position, orientation)
+            return
+        position, orientation = self.env.move_to(position, orientation)
+        self.position = position
+        self.orientation = orientation
+
+    def get_pose(self) -> Pose:
+        if self.env is None:
+            return super().get_pose()
+        position, orientation = self.env.get_pose()
+        self.position = position
+        self.orientation = orientation
+        return position, orientation
+
+    def render(self) -> Any:
+        if self.env is None:
+            raise RuntimeError("No environment set. Call set_environment() first.")
+        return self.env.render()
             
 
     # Target

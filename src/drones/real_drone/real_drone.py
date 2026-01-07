@@ -1,16 +1,26 @@
-# callback functions to interact with the real world environment
-# refer to the files run_real_drone.py and dronecore/drone.py, etc.
+from __future__ import annotations
+from typing import Any
+from drones.dronecore.drone import DroneEnvironment, Pose
 
-def real_move_callback():
-    # move the real drone using drone API
-    # then update the drone pose accordingly
-    raise NotImplementedError()
-    
-def real_get_pose_callback():
-    # just get the drone pose from the real drone system
-    raise NotImplementedError()
-     
-def real_render_callback():
-    # no need to get pose since real drone provides real camera view
-    # just capture the camera view from the real drone
-    raise NotImplementedError()
+
+class RealDroneEnvironment(DroneEnvironment):
+    def __init__(self, backend, camera=None) -> None:
+        self.backend = backend
+        self.camera = camera
+
+    def move(self, delta_position, delta_orientation) -> Pose:
+        # TODO: Send relative move command directly via the drone backend
+        # TODO: Wait for the drone to settle (or time out), then return pose.
+        raise NotImplementedError()
+
+    def move_to(self, position, orientation) -> Pose:
+        # TODO: Send an absolute move command (if supported) and return pose
+        raise NotImplementedError()
+
+    def get_pose(self) -> Pose:
+        # TODO: Query the drone telemetry system and return current pose
+        raise NotImplementedError()
+
+    def render(self) -> Any:
+        # TODO: Capture an image from the onboard camera or camera pipeline
+        raise NotImplementedError()
