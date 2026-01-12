@@ -3,7 +3,7 @@ run:
   num_steps: 100
   stage: 0
   device: cuda
-  target_prompt: null
+  target_prompt: "a man"
   image_format: null
   render_engine: null
 

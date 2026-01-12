@@ -78,10 +78,10 @@ class DroneVisionAgent(Drone):
         self.target_image_embedding = target_image_embedding
         
         # Memory
-        self.captured_images = []  # List of (image, pose, detections, evaluation) tuples
-        self.best_view = None  # (image, pose, detections, evaluation)
+        self.captured_images = []       # List of (image, pose, detections, evaluation) tuples
+        self.best_view = None           # (image, pose, detections, evaluation)
         self.best_score = float('-inf')
-        self.history = []  # List of past poses and actions
+        self.history = []               # List of past poses and actions
         
         # Environment adapter (Blender or real-world)
         self.env = env

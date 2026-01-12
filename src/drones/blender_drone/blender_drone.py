@@ -4,7 +4,7 @@ from typing import Any, Optional, Union
 
 from drones.dronecore.camera import build_camera
 from drones.dronecore.drone import DroneEnvironment, Pose
-from scenes.scene import ensure_camera, set_render_settings
+from src.scenes.scene import ensure_camera, set_render_settings
 
 
 class BlenderDroneEnvironment(DroneEnvironment):
